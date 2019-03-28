@@ -1,5 +1,5 @@
 # 针对StackExChange.Redis的扩展，加入StringList并可设置过期时间
-![Image text](https://github.com/gitapteryx/Apteryx.StackExChange.Redis.Extend/blob/master/Sample/resource/demo1.png)
+![Image text](https://github.com/code-institutes/Apteryx.StackExChange.Redis.Extend/blob/master/demo1.png)
 
 # 使用方法一、
 

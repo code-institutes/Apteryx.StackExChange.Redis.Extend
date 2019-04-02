@@ -18,6 +18,12 @@ namespace Apteryx.StackExChange.Redis.Extend
                 RedisClient = ConnectionMultiplexer.Connect(options.CurrentValue.ConnectionString);
             Database = RedisClient.GetDatabase();
         }
+        public RedisDBProvider(string conn)
+        {
+            if (RedisClient == null)
+                RedisClient = ConnectionMultiplexer.Connect(conn);
+            Database = RedisClient.GetDatabase();
+        }
 
         public void Close()
         {

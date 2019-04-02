@@ -2,6 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>Apteryx.StackexChange.Redis.Extend</PackageId>
+    <Authors>Apteryx</Authors>
+    <Company>Apteryx</Company>
+    <Product>Apteryx.StackexChange.Redis.Extend</Product>
+    <Version>1.0.0</Version>
+    <Description>apteryx QQ:82121500</Description>
+    <Copyright>apteryx QQ:82121500</Copyright>
+    <PackageTags>core,.netcore,aspnetcore,asp.netcore, redis,rediscore</PackageTags>
+    <PackageProjectUrl>https://github.com/code-institutes/Apteryx.StackExChange.Redis.Extend</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>

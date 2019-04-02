@@ -58,6 +58,24 @@
         public IRedisCollection<Account> Accounts => Database.GetCollection<Account>();
     }
     
+    public class Startup
+    {
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+        public IConfiguration Configuration { get; }
+        // This method gets called by the runtime. Use this method to add services to the container.
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddRedis<RedisEntity>(options =>
+            {
+                options.ConnectionString = "xxx.xxx.xxx.xxx:6379,password = 123456,defaultDatabase = 0";
+            });
+            //............................
+        }
+    }
+    
     [Route("api/[controller]")]
     [ApiController]
     public class ValuesController : ControllerBase

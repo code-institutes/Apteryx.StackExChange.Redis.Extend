@@ -45,3 +45,33 @@
             }
         }
     }
+# 使用方法三、
+    public class Account
+    {
+        public string Name { get; set; }
+    }
+
+    public class RedisEntity : RedisDBProvider
+    {
+        public RedisEntity(IOptionsMonitor<RedisOptions> options) : base(options) { }
+
+        public IRedisCollection<Account> Accounts => Database.GetCollection<Account>();
+    }
+    
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ValuesController : ControllerBase
+    {
+        private RedisEntity db = null;
+        public ValuesController(IRedisService redis)
+        {
+            db = redis as RedisEntity;
+        }
+        // GET api/values
+        [HttpGet()]
+        public IActionResult Get()
+        {
+            return Ok(db.Accounts.Find("50").ToJson());
+        }
+    }
+    

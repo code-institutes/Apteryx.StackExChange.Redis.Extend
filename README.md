@@ -25,6 +25,9 @@
         {
             db.Accounts.AddAsync(new Account() {Name = "张三" + i}, TimeSpan.FromSeconds(20));
         }
+        db.Accounts.AddAsync("key11", new Account() {Name = "张三11"}, TimeSpan.FromSeconds(20));
+        var account1 = db.Accounts.Find("key11");//支持key查询
+        var account2 = db.Accounts.FirstOrDefault(f => f.Name == "张三8");//注意此方法为遍历对比，只适用少量数据。
     }
 
 # 使用方法二、

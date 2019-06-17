@@ -38,6 +38,12 @@ namespace Apteryx.StackExChange.Redis.Extend.UnitHandlers
 
         IEnumerable<T> FindAll();
 
+        bool Remove(string key);
+        Task<bool> RemoveAsync(string key);
+
+        bool Remove(Func<T, bool> predicate);
+        Task<bool> RemoveAsync(Func<T, bool> predicate);
+
         long RemoveRange();
         Task RemoveRangeAsync();
     }

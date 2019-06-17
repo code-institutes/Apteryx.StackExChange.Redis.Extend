@@ -296,6 +296,50 @@ namespace Apteryx.StackExChange.Redis.Extend.UnitHandlers
                 await AddAsync(value, expiry);
         }
 
+        public bool Remove(string key)
+        {
+            return db.KeyDelete(key);
+        }
+
+        public Task<bool> RemoveAsync(string key)
+        {
+            return db.KeyDeleteAsync(key);
+        }
+
+        public bool Remove(Func<T, bool> predicate)
+        {
+            foreach (var ep in db.Multiplexer.GetEndPoints())
+            {
+                var server = db.Multiplexer.GetServer(ep);
+                var keys = server.Keys(pattern: KeyPrefix + "*", database: db.Database);
+                foreach (var k in keys)
+                {
+                    var obj = db.StringGet(k).ToString().FromJson<T>();
+                    if (predicate.Invoke(obj))
+                        return db.KeyDelete(k);
+                }
+            }
+
+            return false;
+        }
+
+        public Task<bool> RemoveAsync(Func<T, bool> predicate)
+        {
+            foreach (var ep in db.Multiplexer.GetEndPoints())
+            {
+                var server = db.Multiplexer.GetServer(ep);
+                var keys = server.Keys(pattern: KeyPrefix + "*", database: db.Database);
+                foreach (var k in keys)
+                {
+                    var obj = db.StringGet(k).ToString().FromJson<T>();
+                    if (predicate.Invoke(obj))
+                        return db.KeyDeleteAsync(k);
+                }
+            }
+
+            return Task.Run(() => { return false;});
+        }
+
         public long RemoveRange()
         {
             long count = 0;
@@ -313,7 +357,7 @@ namespace Apteryx.StackExChange.Redis.Extend.UnitHandlers
             return count;
         }
 
-        public async Task RemoveRangeAsync()
+        public Task RemoveRangeAsync()
         {
             foreach (var ep in db.Multiplexer.GetEndPoints())
             {
@@ -324,6 +368,8 @@ namespace Apteryx.StackExChange.Redis.Extend.UnitHandlers
                     db.KeyDeleteAsync(k);
                 }
             }
+
+            return default(Task);
         }
 
         private void BuildKeyPrefix()

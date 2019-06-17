@@ -1,4 +1,4 @@
-# 针对StackExChange.Redis的扩展，加入StringList并可设置过期时间
+# 针对StackExChange.Redis的扩展，加入实体（String类型）并可设置过期时间
 ![Image text](https://github.com/code-institutes/Apteryx.StackExChange.Redis.Extend/blob/master/demo1.png)
 
 # 使用方法一、
@@ -25,6 +25,9 @@
         {
             db.Accounts.AddAsync(new Account() {Name = "张三" + i}, TimeSpan.FromSeconds(20));
         }
+        db.Accounts.AddAsync("key11", new Account() {Name = "张三11"}, TimeSpan.FromSeconds(20));
+        var account1 = db.Accounts.Find("key11");//支持key查询
+        var account2 = db.Accounts.FirstOrDefault(f => f.Name == "张三8");//注意此方法为遍历对比，只适用少量数据。
     }
 
 # 使用方法二、
@@ -89,7 +92,15 @@
         [HttpGet()]
         public IActionResult Get()
         {
-            return Ok(db.Accounts.Find("50").ToJson());
+            for (int i = 1; i <= 10; i++)
+            {
+                db.Accounts.AddAsync(new Account() {Name = "张三" + i}, TimeSpan.FromSeconds(20));
+            }
+            
+            db.Accounts.AddAsync("key11", new Account() {Name = "张三11"}, TimeSpan.FromSeconds(20));
+            var account1 = db.Accounts.Find("key11");//支持key查询
+            var account2 = db.Accounts.FirstOrDefault(f => f.Name == "张三8");//注意此方法为遍历对比，只适用少量数据。
+            return Ok(account1);
         }
     }
     

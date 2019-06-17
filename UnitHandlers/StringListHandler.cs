@@ -2,19 +2,21 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using apteryx.stackexchange.redis.extend.Entities;
 using ServiceStack;
 using StackExchange.Redis;
 
 namespace Apteryx.StackExChange.Redis.Extend.UnitHandlers
 {
-    public class StringListHandler<T> : IUnit<T>, IDisposable
-        where T : class
+    public class StringListHandler<T> : IUnit<T>
+        where T : BaseRedisEntity
     {
         private bool m_disposed;
         private readonly IDatabase db;
         private StringBuilder _keyPrefix = new StringBuilder();
         public string KeyPrefix => _keyPrefix.ToString();
         public string Key { get; protected set; }
+        public Func<string, string> DKey => (key) => { return string.Format("{0}{1}", KeyPrefix, key); };
 
         public StringListHandler(IDatabase database)
         {
@@ -140,9 +142,50 @@ namespace Apteryx.StackExChange.Redis.Extend.UnitHandlers
             return default(T);
         }
 
-        public bool DeleteThis()
+        public bool Delete(T obj)
         {
-            return db.KeyDelete(this.Key);
+            var key = DKey(obj._key);
+            return db.KeyDelete(key);
+        }
+
+        public Task<bool> DeleteAsync(T obj)
+        {
+            var key = DKey(obj._key);
+            return db.KeyDeleteAsync(key);
+        }
+
+        public bool Delete(Func<T, bool> predicate)
+        {
+            foreach (var ep in db.Multiplexer.GetEndPoints())
+            {
+                var server = db.Multiplexer.GetServer(ep);
+                var keys = server.Keys(pattern: KeyPrefix + "*", database: db.Database);
+                foreach (var k in keys)
+                {
+                    var obj = db.StringGet(k).ToString().FromJson<T>();
+                    if (predicate.Invoke(obj))
+                        return db.KeyDelete(k);
+                }
+            }
+
+            return false;
+        }
+
+        public Task<bool> DeleteAsync(Func<T, bool> predicate)
+        {
+            foreach (var ep in db.Multiplexer.GetEndPoints())
+            {
+                var server = db.Multiplexer.GetServer(ep);
+                var keys = server.Keys(pattern: KeyPrefix + "*", database: db.Database);
+                foreach (var k in keys)
+                {
+                    var obj = db.StringGet(k).ToString().FromJson<T>();
+                    if (predicate.Invoke(obj))
+                        return db.KeyDeleteAsync(k);
+                }
+            }
+
+            return Task.Run(() => { return false; });
         }
 
         /// <summary>

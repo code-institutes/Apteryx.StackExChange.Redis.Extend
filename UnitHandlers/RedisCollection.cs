@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using apteryx.stackexchange.redis.extend.Entities;
 using ServiceStack;
 using StackExchange.Redis;
 
 namespace Apteryx.StackExChange.Redis.Extend.UnitHandlers
 {
     public class RedisCollection<T> : IRedisCollection<T>
-        where T : class
+        where T : BaseRedisEntity
     {
         private bool m_disposed;
         private readonly IDatabase db;
@@ -67,12 +68,13 @@ namespace Apteryx.StackExChange.Redis.Extend.UnitHandlers
 
         public long Add(T value, CommandFlags flags = CommandFlags.None)
         {
-            return db.StringAppend(this.Key, value.ToJson(), flags);
+            var key = DKey(value._key);
+            return db.StringAppend(key, value.ToJson(), flags);
         }
 
         public bool Add(T value, TimeSpan? expiry, CommandFlags flags = CommandFlags.None)
         {
-            var key = this.Key;
+            var key = DKey(value._key);
             bool result = false;
             try
             {
@@ -93,57 +95,7 @@ namespace Apteryx.StackExChange.Redis.Extend.UnitHandlers
 
         public bool Add(T value, DateTime? expiry, CommandFlags flags = CommandFlags.None)
         {
-            var key = this.Key;
-            bool result = false;
-            try
-            {
-                db.StringAppend(key, value.ToJson(), flags);
-                result = db.KeyExpire(key, expiry);
-            }
-            finally
-            {
-                if (!result)
-                {
-                    db.KeyDelete(key, flags);
-                    Console.WriteLine($"过期时间设置失败！Key：{key}");
-                }
-            }
-
-            return result;
-        }
-
-        public long Add(string key, T value, CommandFlags flags = CommandFlags.None)
-        {
-            key = DKey(key);
-            db.KeyDelete(key);
-            return db.StringAppend(key, value.ToJson(), flags);
-        }
-
-        public bool Add(string key, T value, TimeSpan? expiry, CommandFlags flags = CommandFlags.None)
-        {
-            key = DKey(key);
-            db.KeyDelete(key);
-            bool result = false;
-            try
-            {
-                db.StringAppend(key, value.ToJson(), flags);
-                result = db.KeyExpire(key, expiry);
-            }
-            finally
-            {
-                if (!result)
-                {
-                    db.KeyDelete(key, flags);
-                    Console.WriteLine($"过期时间设置失败！Key：{key}");
-                }
-            }
-
-            return result;
-        }
-        public bool Add(string key, T value, DateTime? expiry, CommandFlags flags = CommandFlags.None)
-        {
-            key = DKey(key);
-            db.KeyDelete(key);
+            var key = DKey(value._key);
             bool result = false;
             try
             {
@@ -164,12 +116,13 @@ namespace Apteryx.StackExChange.Redis.Extend.UnitHandlers
 
         public Task<long> AddAsync(T value, CommandFlags flags = CommandFlags.None)
         {
-            return db.StringAppendAsync(this.Key, value.ToJson(), flags);
+            var key = DKey(value._key);
+            return db.StringAppendAsync(key, value.ToJson(), flags);
         }
 
         public async Task<bool> AddAsync(T value, TimeSpan? expiry, CommandFlags flags = CommandFlags.None)
         {
-            var key = this.Key;
+            var key = DKey(value._key);
             bool result = false;
             try
             {
@@ -190,63 +143,12 @@ namespace Apteryx.StackExChange.Redis.Extend.UnitHandlers
 
         public async Task<bool> AddAsync(T value, DateTime? expiry, CommandFlags flags = CommandFlags.None)
         {
-            var key = this.Key;
+            var key = DKey(value._key);
             bool result = false;
             try
             {
                 await db.StringAppendAsync(key, value.ToJson(), flags);
                 result = await db.KeyExpireAsync(key, expiry);
-            }
-            finally
-            {
-                if (!result)
-                {
-                    await db.KeyDeleteAsync(key, flags);
-                    Console.WriteLine($"过期时间设置失败！Key：{key}");
-                }
-            }
-
-            return result;
-        }
-
-        public Task<long> AddAsync(string key,T value, CommandFlags flags = CommandFlags.None)
-        {
-            key = DKey(key);
-            db.KeyDeleteAsync(key);
-            return db.StringAppendAsync(key, value.ToJson(), flags);
-        }
-
-        public async Task<bool> AddAsync(string key,T value, TimeSpan? expiry, CommandFlags flags = CommandFlags.None)
-        {
-            key = DKey(key);
-            await db.KeyDeleteAsync(key);
-            bool result = false;
-            try
-            {
-                await db.StringAppendAsync(key, value.ToJson(), flags);
-                result = await db.KeyExpireAsync(key, expiry);
-            }
-            finally
-            {
-                if (!result)
-                {
-                    await db.KeyDeleteAsync(key, flags);
-                    Console.WriteLine($"过期时间设置失败！Key：{key}");
-                }
-            }
-
-            return result;
-        }
-
-        public async Task<bool> AddAsync(string key,T value, DateTime? expiry, CommandFlags flags = CommandFlags.None)
-        {
-            key = this.DKey(key);
-            await db.KeyDeleteAsync(key);
-            bool result = false;
-            try
-            {
-                await db.StringAppendAsync(key, value.ToJson(), flags);
-                result =await db.KeyExpireAsync(key, expiry);
             }
             finally
             {
@@ -296,13 +198,15 @@ namespace Apteryx.StackExChange.Redis.Extend.UnitHandlers
                 await AddAsync(value, expiry);
         }
 
-        public bool Remove(string key)
+        public bool Remove(T obj)
         {
+            var key = DKey(obj._key);
             return db.KeyDelete(key);
         }
 
-        public Task<bool> RemoveAsync(string key)
+        public Task<bool> RemoveAsync(T obj)
         {
+            var key = DKey(obj._key);
             return db.KeyDeleteAsync(key);
         }
 

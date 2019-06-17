@@ -6,7 +6,7 @@ using StackExchange.Redis;
 
 namespace Apteryx.StackExChange.Redis.Extend
 {
-    public abstract partial  class RedisDBProvider:IRedisService,IDisposable
+    public abstract class RedisDBProvider:IRedisService,IDisposable
     {
         public IDatabase Database { get; private set; }
         public ConnectionMultiplexer RedisClient { get; private set; }

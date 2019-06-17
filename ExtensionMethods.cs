@@ -1,5 +1,4 @@
-﻿using apteryx.stackexchange.redis.extend.Entities;
-using Apteryx.StackExChange.Redis.Extend.UnitHandlers;
+﻿using Apteryx.StackExChange.Redis.Extend.UnitHandlers;
 using StackExchange.Redis;
 
 namespace Apteryx.StackExChange.Redis.Extend

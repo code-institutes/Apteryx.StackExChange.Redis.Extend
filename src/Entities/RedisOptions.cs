@@ -1,4 +1,4 @@
-﻿namespace Apteryx.StackExChange.Redis.Extend.Entities
+﻿namespace Apteryx.StackExChange.Redis.Extend
 {
     public sealed class RedisOptions
     {

@@ -1,9 +1,8 @@
-﻿using apteryx.stackexchange.redis.extend.Entities;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 
-namespace Apteryx.StackExChange.Redis.Extend.UnitHandlers
+namespace Apteryx.StackExChange.Redis.Extend
 {
-    public static class RedisDataBase
+    public static class RedisDataHelper
     {
         public static IRedisCollection<T> GetCollection<T>(this IDatabase db) where T : BaseRedisEntity
         {

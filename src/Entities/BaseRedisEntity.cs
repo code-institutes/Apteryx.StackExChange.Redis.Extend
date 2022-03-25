@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace apteryx.stackexchange.redis.extend.Entities
+namespace Apteryx.StackExChange.Redis.Extend
 {
-    public abstract class BaseRedisEntity:IRedisEntity
+    public abstract class BaseRedisEntity
     {
         public string _key { get; private set; } = Guid.NewGuid().ToString();
     }

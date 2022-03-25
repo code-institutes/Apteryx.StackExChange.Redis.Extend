@@ -6,7 +6,7 @@
     <Authors>Apteryx</Authors>
     <Company>Apteryx</Company>
     <Product>Apteryx.StackexChange.Redis.Extend</Product>
-    <Version>2.1.0</Version>
+    <Version>2.2.0</Version>
     <Description>apteryx QQ:82121500</Description>
     <Copyright>apteryx QQ:82121500</Copyright>
     <PackageTags>core,.netcore,aspnetcore,asp.netcore, redis,rediscore</PackageTags>

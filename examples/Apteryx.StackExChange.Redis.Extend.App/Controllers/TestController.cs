@@ -41,13 +41,13 @@ namespace Apteryx.StackExChange.Redis.Extend.App.Controllers
         [HttpGet("fun2")]
         public async Task<IActionResult> Fun2()
         {
-            for (int i = 1; i <= 10; i++)
+            for (int i = 1; i <= 10000; i++)
             {
-                _redis.Accounts.Add(new Account() { Name = "张三" + i }, TimeSpan.FromMinutes(1));
+                _redis.Accounts.AddAsync(new Account() { Name = "张三" + i }, TimeSpan.FromMinutes(1));
             }
             _redis.Accounts.Add("key11", new Account() { Name = "张三11" }, TimeSpan.FromMinutes(1));
             var account1 = _redis.Accounts.Find("key11");//支持key查询
-            var account2 = _redis.Accounts.FirstOrDefault(f => f.Name == "张三8");//注意此方法为遍历对比，只适用少量数据。
+            //var account2 = _redis.Accounts.FirstOrDefault(f => f.Name == "张三5000");//注意此方法为遍历对比，只适用少量数据。
 
             return Ok(Content("success"));
         }

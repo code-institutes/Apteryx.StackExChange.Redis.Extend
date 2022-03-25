@@ -9,6 +9,7 @@ namespace Apteryx.StackExChange.Redis.Extend
         where T : BaseRedisEntity
     {
         T FirstOrDefault(Func<T, bool> predicate);
+        Task<T> FirstOrDefaultAsync(Func<T, bool> predicate);
         T Find(string key);
         Task<T> FindAsync(string key);
 
@@ -35,10 +36,10 @@ namespace Apteryx.StackExChange.Redis.Extend
         bool Remove(T value);
         Task<bool> RemoveAsync(T value);
 
-        bool Remove(Func<T, bool> predicate);
-        Task<bool> RemoveAsync(Func<T, bool> predicate);
+        RemoveResult Remove(Func<T, bool> predicate);
+        Task<RemoveResult> RemoveAsync(Func<T, bool> predicate);
 
-        long RemoveRange();
-        Task RemoveRangeAsync();
+        RemoveResult RemoveAll();
+        Task<RemoveResult> RemoveAllAsync();
     }
 }

@@ -20,6 +20,18 @@ namespace Apteryx.StackExChange.Redis.Extend
             BuildKeyPrefix();
         }
 
+        public T Find(string key)
+        {
+            key = DKey(key);
+            return _db.StringGet(key).ToString().FromJson<T>();
+        }
+
+        public async Task<T> FindAsync(string key)
+        {
+            key = DKey(key);
+            return (await _db.StringGetAsync(key)).ToString().FromJson<T>();
+        }
+
         public T FirstOrDefault(Func<T, bool> predicate)
         {
             foreach (var ep in _db.Multiplexer.GetEndPoints())
@@ -31,23 +43,15 @@ namespace Apteryx.StackExChange.Redis.Extend
                     var obj = _db.StringGet(k).ToString().FromJson<T>();
                     if (predicate.Invoke(obj))
                         return obj;
-                
                 }
             }
 
             return default(T);
         }
 
-        public T Find(string key)
+        public Task<T> FirstOrDefaultAsync(Func<T, bool> predicate)
         {
-            key = DKey(key);
-            return _db.StringGet(key).ToString().FromJson<T>();
-        }
-
-        public async Task<T> FindAsync(string key)
-        {
-            key = DKey(key);
-            return (await _db.StringGetAsync(key)).ToString().FromJson<T>();
+            return Task.Run(()=> FirstOrDefault(predicate));
         }
 
         public IEnumerable<T> FindAll()
@@ -62,6 +66,7 @@ namespace Apteryx.StackExChange.Redis.Extend
                 }
             }
         }
+
         public bool Remove(T obj)
         {
             var key = DKey(obj._key);
@@ -74,41 +79,33 @@ namespace Apteryx.StackExChange.Redis.Extend
             return _db.KeyDeleteAsync(key);
         }
 
-        public bool Remove(Func<T, bool> predicate)
+        public RemoveResult Remove(Func<T, bool> predicate)
         {
+            long count = 0;
             foreach (var ep in _db.Multiplexer.GetEndPoints())
             {
                 var server = _db.Multiplexer.GetServer(ep);
                 var keys = server.Keys(pattern: KeyPrefix + "*", database: _db.Database);
-                foreach (var k in keys)
+                foreach (var key in keys)
                 {
-                    var obj = _db.StringGet(k).ToString().FromJson<T>();
+                    var obj = _db.StringGet(key).ToString().FromJson<T>();
                     if (predicate.Invoke(obj))
-                        return _db.KeyDelete(k);
+                    {
+                        if (_db.KeyDelete(key))
+                            ++count;
+                    }
                 }
             }
 
-            return false;
+            return new RemoveResult(count);
         }
 
-        public Task<bool> RemoveAsync(Func<T, bool> predicate)
+        public Task<RemoveResult> RemoveAsync(Func<T, bool> predicate)
         {
-            foreach (var ep in _db.Multiplexer.GetEndPoints())
-            {
-                var server = _db.Multiplexer.GetServer(ep);
-                var keys = server.Keys(pattern: KeyPrefix + "*", database: _db.Database);
-                foreach (var k in keys)
-                {
-                    var obj = _db.StringGet(k).ToString().FromJson<T>();
-                    if (predicate.Invoke(obj))
-                        return _db.KeyDeleteAsync(k);
-                }
-            }
-
-            return Task.Run(() => { return false; });
+            return Task.Run(() => Remove(predicate));
         }
 
-        public long RemoveRange()
+        public RemoveResult RemoveAll()
         {
             long count = 0;
             foreach (var ep in _db.Multiplexer.GetEndPoints())
@@ -122,49 +119,17 @@ namespace Apteryx.StackExChange.Redis.Extend
                 }
             }
 
-            return count;
+            return new RemoveResult(count);
         }
 
-        public Task RemoveRangeAsync()
+        public Task<RemoveResult> RemoveAllAsync()
         {
-            foreach (var ep in _db.Multiplexer.GetEndPoints())
-            {
-                var server = _db.Multiplexer.GetServer(ep);
-                var keys = server.Keys(pattern: KeyPrefix + "*", database: _db.Database);
-                foreach (var k in keys)
-                {
-                    _db.KeyDeleteAsync(k);
-                }
-            }
-
-            return default(Task);
-        }
-
-        private void BuildKeyPrefix()
-        {
-            _keyPrefix.Append("Unit");
-            BuildKey(typeof(T));
-            _keyPrefix.Append(":");
-
-            this.KeyPrefix = _keyPrefix.ToString();
-        }
-
-        private void BuildKey(Type t)
-        {
-            _keyPrefix.Append(":");
-            _keyPrefix.Append(t.Name);
-            if (t.IsGenericType)
-            {
-                foreach (var arg in t.GetGenericArguments())
-                {
-                    BuildKey(arg);
-                }
-            }
+            return Task.Run(() => RemoveAll());
         }
 
         public bool Add(T value, TimeSpan? expiry = null, When when = When.Always, CommandFlags flags = CommandFlags.None)
         {
-            return Add(value._key,value,expiry,when,flags);
+            return Add(value._key, value, expiry, when, flags);
         }
 
         public bool Add(T value, DateTime? expiry = null, When when = When.Always, CommandFlags flags = CommandFlags.None)
@@ -188,7 +153,7 @@ namespace Apteryx.StackExChange.Redis.Extend
 
         public Task<bool> AddAsync(T value, TimeSpan? expiry = null, When when = When.Always, CommandFlags flags = CommandFlags.None)
         {
-            return AddAsync(value._key,value, expiry, when, flags);
+            return AddAsync(value._key, value, expiry, when, flags);
         }
 
         public Task<bool> AddAsync(T value, DateTime? expiry = null, When when = When.Always, CommandFlags flags = CommandFlags.None)
@@ -235,6 +200,28 @@ namespace Apteryx.StackExChange.Redis.Extend
             if (expiry != null)
                 ts = expiry - DateTime.Now;
             return AddRangeAsync(values, ts, when, flags);
+        }
+
+        private void BuildKeyPrefix()
+        {
+            _keyPrefix.Append("Unit");
+            BuildKey(typeof(T));
+            _keyPrefix.Append(":");
+
+            this.KeyPrefix = _keyPrefix.ToString();
+        }
+
+        private void BuildKey(Type t)
+        {
+            _keyPrefix.Append(":");
+            _keyPrefix.Append(t.Name);
+            if (t.IsGenericType)
+            {
+                foreach (var arg in t.GetGenericArguments())
+                {
+                    BuildKey(arg);
+                }
+            }
         }
     }
 }
